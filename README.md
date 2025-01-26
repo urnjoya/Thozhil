@@ -22,5 +22,5 @@ Clone this repository to your local machine.
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/your-username/task-management-app.git
+   git clone https://github.com/urnjoya/thozhil-app.git
    cd task-management-app
