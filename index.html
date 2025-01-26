@@ -1,0 +1,236 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f3f4f6"> 
+    <title>Thozhil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-roboto">
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [tasks, setTasks] = useState([]);
+            const [form, setForm] = useState({ email: '', password: '' });
+            const [isLogin, setIsLogin] = useState(true);
+
+            useEffect(() => {
+                const storedUser = JSON.parse(localStorage.getItem('user'));
+                const storedTasks = JSON.parse(localStorage.getItem('tasks'));
+                if (storedUser) setUser(storedUser);
+                if (storedTasks) setTasks(storedTasks);
+            }, []);
+
+            useEffect(() => {
+                if (user) localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }, [user, tasks]);
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setForm({ ...form, [name]: value });
+            };
+
+            const handleAuth = () => {
+                if (isLogin) {
+                    // Simulate login
+                    setUser({ email: form.email });
+                } else {
+                    // Simulate signup
+                    setUser({ email: form.email });
+                }
+                setForm({ email: '', password: '' });
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+                setTasks([]);
+                localStorage.removeItem('user');
+                localStorage.removeItem('tasks');
+            };
+
+            const addTask = (task) => {
+                setTasks([...tasks, task]);
+            };
+
+            const updateTask = (index, updatedTask) => {
+                const newTasks = tasks.map((task, i) => (i === index ? updatedTask : task));
+                setTasks(newTasks);
+            };
+
+            const deleteTask = (index) => {
+                const newTasks = tasks.filter((_, i) => i !== index);
+                setTasks(newTasks);
+            };
+
+            return (
+                <div className="container mx-auto p-4">
+                    {!user ? (
+                        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+                            <h2 className="text-2xl font-bold mb-4">{isLogin ? 'Login' : 'Sign Up'}</h2>
+                            <input
+                                type="email"
+                                name="email"
+                                value={form.email}
+                                onChange={handleInputChange}
+                                placeholder="Email"
+                                className="w-full p-2 mb-4 border rounded"
+                            />
+                            <input
+                                type="password"
+                                name="password"
+                                value={form.password}
+                                onChange={handleInputChange}
+                                placeholder="Password"
+                                className="w-full p-2 mb-4 border rounded"
+                            />
+                            <button
+                                onClick={handleAuth}
+                                className="w-full bg-blue-500 text-white p-2 rounded"
+                            >
+                                {isLogin ? 'Login' : 'Sign Up'}
+                            </button>
+                            <p className="mt-4 text-center">
+                                {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+                                <span
+                                    onClick={() => setIsLogin(!isLogin)}
+                                    className="text-blue-500 cursor-pointer"
+                                >
+                                    {isLogin ? 'Sign Up' : 'Login'}
+                                </span>
+                            </p>
+                        </div>
+                    ) : (
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h1 className="text-3xl font-bold">Task Management</h1>
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-red-500 text-white p-2 rounded"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                            <TaskForm addTask={addTask} />
+                            <TaskList tasks={tasks} updateTask={updateTask} deleteTask={deleteTask} />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const TaskForm = ({ addTask }) => {
+            const [task, setTask] = useState({
+                title: '',
+                dueDate: '',
+                priority: 'Low',
+                notes: '',
+                completed: false,
+            });
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setTask({ ...task, [name]: value });
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                addTask(task);
+                setTask({ title: '', dueDate: '', priority: 'Low', notes: '', completed: false });
+            };
+
+            return (
+                <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-lg mb-4">
+                    <h2 className="text-2xl font-bold mb-4">Add Task</h2>
+                    <input
+                        type="text"
+                        name="title"
+                        value={task.title}
+                        onChange={handleChange}
+                        placeholder="Task Title"
+                        className="w-full p-2 mb-4 border rounded"
+                    />
+                    <input
+                        type="date"
+                        name="dueDate"
+                        value={task.dueDate}
+                        onChange={handleChange}
+                        className="w-full p-2 mb-4 border rounded"
+                    />
+                    <select
+                        name="priority"
+                        value={task.priority}
+                        onChange={handleChange}
+                        className="w-full p-2 mb-4 border rounded"
+                    >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                    <textarea
+                        name="notes"
+                        value={task.notes}
+                        onChange={handleChange}
+                        placeholder="Notes"
+                        className="w-full p-2 mb-4 border rounded"
+                    ></textarea>
+                    <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
+                        Add Task
+                    </button>
+                </form>
+            );
+        };
+
+        const TaskList = ({ tasks, updateTask, deleteTask }) => {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {tasks.map((task, index) => (
+                        <TaskItem
+                            key={index}
+                            task={task}
+                            updateTask={(updatedTask) => updateTask(index, updatedTask)}
+                            deleteTask={() => deleteTask(index)}
+                        />
+                    ))}
+                </div>
+            );
+        };
+
+        const TaskItem = ({ task, updateTask, deleteTask }) => {
+            const toggleComplete = () => {
+                updateTask({ ...task, completed: !task.completed });
+            };
+
+            return (
+                <div className={`bg-white p-4 rounded-lg shadow-lg ${task.completed ? 'opacity-50' : ''}`}>
+                    <h3 className="text-xl font-bold mb-2">{task.title}</h3>
+                    <p className="mb-2">Due Date: {task.dueDate}</p>
+                    <p className="mb-2">Priority: {task.priority}</p>
+                    <p className="mb-2">Notes: {task.notes}</p>
+                    <div className="flex justify-between items-center">
+                        <button
+                            onClick={toggleComplete}
+                            className={`p-2 rounded ${task.completed ? 'bg-yellow-500' : 'bg-blue-500'} text-white`}
+                        >
+                            {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                        </button>
+                        <button onClick={deleteTask} className="bg-red-500 text-white p-2 rounded">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
